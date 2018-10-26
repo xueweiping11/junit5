@@ -166,7 +166,7 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 
 		// @formatter:off
 		return context.extend()
-				.withTestInstancesProvider(testInstanceProvider(context, registry, extensionContext))
+				.withTestInstancesProvider(testInstancesProvider(context, registry, extensionContext))
 				.withExtensionRegistry(registry)
 				.withExtensionContext(extensionContext)
 				.withThrowableCollector(throwableCollector)
@@ -248,7 +248,7 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 		return null;
 	}
 
-	private TestInstancesProvider testInstanceProvider(JupiterEngineExecutionContext parentExecutionContext,
+	private TestInstancesProvider testInstancesProvider(JupiterEngineExecutionContext parentExecutionContext,
 			ExtensionRegistry registry, ClassExtensionContext extensionContext) {
 
 		TestInstancesProvider testInstancesProvider = childRegistry -> instantiateAndPostProcessTestInstance(
