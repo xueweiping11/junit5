@@ -50,6 +50,6 @@ public interface TestInstances {
 	/**
 	 * Find the test instance of the supplied required type.
 	 */
-	Optional<Object> find(Class<?> requiredType);
+	<T> Optional<T> find(Class<T> requiredType);
 
 }

@@ -56,12 +56,12 @@ public class DefaultTestInstances implements TestInstances {
 	}
 
 	@Override
-	public Optional<Object> find(Class<?> requiredType) {
+	public <T> Optional<T> find(Class<T> requiredType) {
 		ListIterator<Object> iterator = instances.listIterator(instances.size());
 		while (iterator.hasPrevious()) {
 			Object instance = iterator.previous();
 			if (requiredType.isInstance(instance)) {
-				return Optional.of(instance);
+				return Optional.of(requiredType.cast(instance));
 			}
 		}
 		return Optional.empty();
