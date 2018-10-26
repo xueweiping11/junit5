@@ -71,7 +71,7 @@ public class NestedClassTestDescriptor extends ClassTestDescriptor {
 
 		// Extensions registered for nested classes and below are not to be used for instantiating outer classes
 		Optional<ExtensionRegistry> childExtensionRegistryForOuterInstance = Optional.empty();
-		TestInstances outerInstances = parentExecutionContext.getTestInstanceProvider().getTestInstances(
+		TestInstances outerInstances = parentExecutionContext.getTestInstancesProvider().getTestInstances(
 			childExtensionRegistryForOuterInstance);
 		return instantiateTestClass(Optional.of(outerInstances), registry, extensionContext);
 	}

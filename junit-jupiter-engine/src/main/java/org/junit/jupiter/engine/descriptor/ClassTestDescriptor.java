@@ -184,7 +184,7 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 			// and store the instance in the ExtensionContext.
 			ClassExtensionContext extensionContext = (ClassExtensionContext) context.getExtensionContext();
 			throwableCollector.execute(() -> extensionContext.setTestInstances(
-				context.getTestInstanceProvider().getTestInstances(Optional.empty())));
+				context.getTestInstancesProvider().getTestInstances(Optional.empty())));
 		}
 
 		if (throwableCollector.isEmpty()) {

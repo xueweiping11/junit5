@@ -68,7 +68,7 @@ class JupiterEngineExecutionContextTests {
 
 		assertSame(extensionContext, newContext.getExtensionContext());
 		assertSame(extensionRegistry, newContext.getExtensionRegistry());
-		assertSame(testInstancesProvider, newContext.getTestInstanceProvider());
+		assertSame(testInstancesProvider, newContext.getTestInstancesProvider());
 	}
 
 	@Test
@@ -93,7 +93,7 @@ class JupiterEngineExecutionContextTests {
 
 		assertSame(newExtensionContext, newContext.getExtensionContext());
 		assertSame(extensionRegistry, newContext.getExtensionRegistry());
-		assertSame(testInstancesProvider, newContext.getTestInstanceProvider());
+		assertSame(testInstancesProvider, newContext.getTestInstancesProvider());
 	}
 
 	@Test

@@ -67,7 +67,7 @@ public class JupiterEngineExecutionContext implements EngineExecutionContext {
 		return this.state.configurationParameters;
 	}
 
-	public TestInstancesProvider getTestInstanceProvider() {
+	public TestInstancesProvider getTestInstancesProvider() {
 		return this.state.testInstancesProvider;
 	}
 
