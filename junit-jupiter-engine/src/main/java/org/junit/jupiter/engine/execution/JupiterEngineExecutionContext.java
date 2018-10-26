@@ -67,8 +67,8 @@ public class JupiterEngineExecutionContext implements EngineExecutionContext {
 		return this.state.configurationParameters;
 	}
 
-	public TestInstanceProvider getTestInstanceProvider() {
-		return this.state.testInstanceProvider;
+	public TestInstancesProvider getTestInstanceProvider() {
+		return this.state.testInstancesProvider;
 	}
 
 	public ExtensionRegistry getExtensionRegistry() {
@@ -124,7 +124,7 @@ public class JupiterEngineExecutionContext implements EngineExecutionContext {
 
 		final EngineExecutionListener executionListener;
 		final ConfigurationParameters configurationParameters;
-		TestInstanceProvider testInstanceProvider;
+		TestInstancesProvider testInstancesProvider;
 		ExtensionRegistry extensionRegistry;
 		ExtensionContext extensionContext;
 		ThrowableCollector throwableCollector;
@@ -155,8 +155,8 @@ public class JupiterEngineExecutionContext implements EngineExecutionContext {
 			this.originalState = originalState;
 		}
 
-		public Builder withTestInstanceProvider(TestInstanceProvider testInstanceProvider) {
-			newState().testInstanceProvider = testInstanceProvider;
+		public Builder withTestInstancesProvider(TestInstancesProvider testInstancesProvider) {
+			newState().testInstancesProvider = testInstancesProvider;
 			return this;
 		}
 

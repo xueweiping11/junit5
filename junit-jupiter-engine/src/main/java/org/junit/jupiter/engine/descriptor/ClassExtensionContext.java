@@ -19,6 +19,7 @@ import java.util.Optional;
 import org.apiguardian.api.API;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestInstances;
 import org.junit.platform.engine.ConfigurationParameters;
 import org.junit.platform.engine.EngineExecutionListener;
 import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
@@ -33,7 +34,7 @@ public final class ClassExtensionContext extends AbstractExtensionContext<ClassT
 
 	private final ThrowableCollector throwableCollector;
 
-	private Object testInstance;
+	private TestInstances testInstances;
 
 	/**
 	 * Create a new {@code ClassExtensionContext} with {@link Lifecycle#PER_METHOD}.
@@ -73,13 +74,18 @@ public final class ClassExtensionContext extends AbstractExtensionContext<ClassT
 		return Optional.of(this.lifecycle);
 	}
 
-	void setTestInstance(Object testInstance) {
-		this.testInstance = testInstance;
+	@Override
+	public Optional<Object> getTestInstance() {
+		return getTestInstances().map(TestInstances::getInnermost);
 	}
 
 	@Override
-	public Optional<Object> getTestInstance() {
-		return Optional.ofNullable(this.testInstance);
+	public Optional<TestInstances> getTestInstances() {
+		return Optional.ofNullable(testInstances);
+	}
+
+	void setTestInstances(TestInstances testInstances) {
+		this.testInstances = testInstances;
 	}
 
 	@Override

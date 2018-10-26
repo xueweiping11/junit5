@@ -42,12 +42,14 @@ import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestInstanceFactory;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
+import org.junit.jupiter.api.extension.TestInstances;
 import org.junit.jupiter.api.extension.TestInstantiationException;
 import org.junit.jupiter.engine.execution.AfterEachMethodAdapter;
 import org.junit.jupiter.engine.execution.BeforeEachMethodAdapter;
+import org.junit.jupiter.engine.execution.DefaultTestInstances;
 import org.junit.jupiter.engine.execution.ExecutableInvoker;
 import org.junit.jupiter.engine.execution.JupiterEngineExecutionContext;
-import org.junit.jupiter.engine.execution.TestInstanceProvider;
+import org.junit.jupiter.engine.execution.TestInstancesProvider;
 import org.junit.jupiter.engine.extension.ExtensionRegistry;
 import org.junit.platform.commons.JUnitException;
 import org.junit.platform.commons.util.BlacklistedExceptions;
@@ -164,7 +166,7 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 
 		// @formatter:off
 		return context.extend()
-				.withTestInstanceProvider(testInstanceProvider(context, registry, extensionContext))
+				.withTestInstancesProvider(testInstanceProvider(context, registry, extensionContext))
 				.withExtensionRegistry(registry)
 				.withExtensionContext(extensionContext)
 				.withThrowableCollector(throwableCollector)
@@ -181,8 +183,8 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 			// Eagerly load test instance for BeforeAllCallbacks, if necessary,
 			// and store the instance in the ExtensionContext.
 			ClassExtensionContext extensionContext = (ClassExtensionContext) context.getExtensionContext();
-			throwableCollector.execute(() -> extensionContext.setTestInstance(
-				context.getTestInstanceProvider().getTestInstance(Optional.empty())));
+			throwableCollector.execute(() -> extensionContext.setTestInstances(
+				context.getTestInstanceProvider().getTestInstances(Optional.empty())));
 		}
 
 		if (throwableCollector.isEmpty()) {
@@ -246,40 +248,44 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 		return null;
 	}
 
-	private TestInstanceProvider testInstanceProvider(JupiterEngineExecutionContext parentExecutionContext,
+	private TestInstancesProvider testInstanceProvider(JupiterEngineExecutionContext parentExecutionContext,
 			ExtensionRegistry registry, ClassExtensionContext extensionContext) {
 
-		TestInstanceProvider testInstanceProvider = childRegistry -> instantiateAndPostProcessTestInstance(
+		TestInstancesProvider testInstancesProvider = childRegistry -> instantiateAndPostProcessTestInstance(
 			parentExecutionContext, extensionContext, childRegistry.orElse(registry));
 
-		return childRegistry -> extensionContext.getTestInstance().orElseGet(
-			() -> testInstanceProvider.getTestInstance(childRegistry));
+		return childRegistry -> extensionContext.getTestInstances().orElseGet(
+			() -> testInstancesProvider.getTestInstances(childRegistry));
 	}
 
-	private Object instantiateAndPostProcessTestInstance(JupiterEngineExecutionContext parentExecutionContext,
-			ExtensionContext extensionContext, ExtensionRegistry registry) {
+	private DefaultTestInstances instantiateAndPostProcessTestInstance(
+			JupiterEngineExecutionContext parentExecutionContext, ExtensionContext extensionContext,
+			ExtensionRegistry registry) {
 
-		Object instance = instantiateTestClass(parentExecutionContext, registry, extensionContext);
-		invokeTestInstancePostProcessors(instance, registry, extensionContext);
+		DefaultTestInstances instances = instantiateTestClass(parentExecutionContext, registry, extensionContext);
+		invokeTestInstancePostProcessors(instances.getInnermost(), registry, extensionContext);
 		// In addition, we register extensions from instance fields here since the
 		// best time to do that is immediately following test class instantiation
 		// and post processing.
-		registerExtensionsFromFields(registry, this.testClass, instance);
-		return instance;
+		registerExtensionsFromFields(registry, this.testClass, instances.getInnermost());
+		return instances;
 	}
 
-	protected Object instantiateTestClass(JupiterEngineExecutionContext parentExecutionContext,
+	protected DefaultTestInstances instantiateTestClass(JupiterEngineExecutionContext parentExecutionContext,
 			ExtensionRegistry registry, ExtensionContext extensionContext) {
 
 		return instantiateTestClass(Optional.empty(), registry, extensionContext);
 	}
 
-	protected Object instantiateTestClass(Optional<Object> outerInstance, ExtensionRegistry registry,
-			ExtensionContext extensionContext) {
+	protected DefaultTestInstances instantiateTestClass(Optional<TestInstances> outerInstances,
+			ExtensionRegistry registry, ExtensionContext extensionContext) {
 
-		return this.testInstanceFactory != null //
+		Optional<Object> outerInstance = outerInstances.map(TestInstances::getInnermost);
+		Object instance = this.testInstanceFactory != null //
 				? invokeTestInstanceFactory(outerInstance, extensionContext) //
 				: invokeTestClassConstructor(outerInstance, registry, extensionContext);
+		return outerInstances.map(instances -> DefaultTestInstances.of(instances, instance)).orElse(
+			DefaultTestInstances.of(instance));
 	}
 
 	private Object invokeTestInstanceFactory(Optional<Object> outerInstance, ExtensionContext extensionContext) {
@@ -422,11 +428,11 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 	}
 
 	private void invokeMethodInExtensionContext(Method method, ExtensionContext context, ExtensionRegistry registry) {
-		Object testInstance = context.getRequiredTestInstance();
-		testInstance = ReflectionUtils.getOutermostInstance(testInstance, method.getDeclaringClass()).orElseThrow(
+		TestInstances testInstances = context.getRequiredTestInstances();
+		Object target = testInstances.find(method.getDeclaringClass()).orElseThrow(
 			() -> new JUnitException("Failed to find instance for method: " + method.toGenericString()));
 
-		executableInvoker.invoke(method, testInstance, context, registry);
+		executableInvoker.invoke(method, target, context, registry);
 	}
 
 }

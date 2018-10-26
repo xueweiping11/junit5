@@ -13,6 +13,7 @@ package org.junit.platform.commons.util;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apiguardian.api.API.Status.DEPRECATED;
 import static org.apiguardian.api.API.Status.INTERNAL;
 import static org.junit.platform.commons.util.CollectionUtils.toUnmodifiableList;
 import static org.junit.platform.commons.util.ReflectionUtils.HierarchyTraversalMode.BOTTOM_UP;
@@ -681,6 +682,8 @@ public final class ReflectionUtils {
 	 * @return an {@code Optional} containing the outermost instance; never {@code null}
 	 * but potentially empty
 	 */
+	@API(status = DEPRECATED, since = "5.4")
+	@Deprecated
 	public static Optional<Object> getOutermostInstance(Object inner, Class<?> requiredType) {
 		Preconditions.notNull(inner, "inner object must not be null");
 		Preconditions.notNull(requiredType, "requiredType must not be null");
