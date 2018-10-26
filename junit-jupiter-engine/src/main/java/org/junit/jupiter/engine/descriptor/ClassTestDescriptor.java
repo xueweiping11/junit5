@@ -258,11 +258,10 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 			() -> testInstancesProvider.getTestInstances(childRegistry));
 	}
 
-	private DefaultTestInstances instantiateAndPostProcessTestInstance(
-			JupiterEngineExecutionContext parentExecutionContext, ExtensionContext extensionContext,
-			ExtensionRegistry registry) {
+	private TestInstances instantiateAndPostProcessTestInstance(JupiterEngineExecutionContext parentExecutionContext,
+			ExtensionContext extensionContext, ExtensionRegistry registry) {
 
-		DefaultTestInstances instances = instantiateTestClass(parentExecutionContext, registry, extensionContext);
+		TestInstances instances = instantiateTestClass(parentExecutionContext, registry, extensionContext);
 		invokeTestInstancePostProcessors(instances.getInnermost(), registry, extensionContext);
 		// In addition, we register extensions from instance fields here since the
 		// best time to do that is immediately following test class instantiation
@@ -271,14 +270,14 @@ public class ClassTestDescriptor extends JupiterTestDescriptor {
 		return instances;
 	}
 
-	protected DefaultTestInstances instantiateTestClass(JupiterEngineExecutionContext parentExecutionContext,
+	protected TestInstances instantiateTestClass(JupiterEngineExecutionContext parentExecutionContext,
 			ExtensionRegistry registry, ExtensionContext extensionContext) {
 
 		return instantiateTestClass(Optional.empty(), registry, extensionContext);
 	}
 
-	protected DefaultTestInstances instantiateTestClass(Optional<TestInstances> outerInstances,
-			ExtensionRegistry registry, ExtensionContext extensionContext) {
+	protected TestInstances instantiateTestClass(Optional<TestInstances> outerInstances, ExtensionRegistry registry,
+			ExtensionContext extensionContext) {
 
 		Optional<Object> outerInstance = outerInstances.map(TestInstances::getInnermost);
 		Object instance = this.testInstanceFactory != null //
