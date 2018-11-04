@@ -42,7 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
  * {@link java.util.Collection Collection},
  * {@link java.util.Iterator Iterator},
  * {@link Iterable}, an array of objects, or an array of primitives. The
- * "arguments" within the stream can be supplied as an instance of
+ * "arguments" within the "stream" can be supplied as an instance of
  * {@link Arguments}, an array of objects (e.g., {@code Object[]}), or a single
  * value if the parameterized test method accepts a single argument.
  *
@@ -61,6 +61,9 @@ import org.junit.jupiter.params.ParameterizedTest;
  * <tr><td>{@code void test(String, int)}</td><td>{@code static Object[][] factory()}</td></tr>
  * <tr><td>{@code void test(String, int)}</td><td>{@code static Stream<Object[]> factory()}</td></tr>
  * <tr><td>{@code void test(String, int)}</td><td>{@code static Stream<Arguments> factory()}</td></tr>
+ * <tr><td>{@code void test(int[])}</td><td>{@code static Stream<int[]> factory()}</td></tr>
+ * <tr><td>{@code void test(int[][])}</td><td>{@code static Stream<int[][]> factory()}</td></tr>
+ * <tr><td>{@code void test(Object[][])}</td><td>{@code static Stream<Object[][]> factory()}</td></tr>
  * </table>
  *
  * <p>Factory methods within the test class must be {@code static} unless the
