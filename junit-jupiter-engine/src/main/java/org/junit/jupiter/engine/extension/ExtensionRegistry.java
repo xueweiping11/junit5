@@ -57,7 +57,9 @@ public class ExtensionRegistry {
 		new ScriptExecutionCondition(), //
 		new RepeatedTestExtension(), //
 		new TestInfoParameterResolver(), //
-		new TestReporterParameterResolver()));
+		new TestReporterParameterResolver(), //
+		new ResourceSupplierExtension() //
+	));
 
 	/**
 	 * Factory for creating and populating a new root registry with the default
