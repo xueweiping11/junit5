@@ -17,6 +17,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
@@ -27,12 +28,15 @@ import org.junit.platform.commons.util.ClassLoaderUtils;
 import org.junit.platform.commons.util.CollectionUtils;
 import org.junit.platform.commons.util.PreconditionViolationException;
 import org.junit.platform.commons.util.Preconditions;
+import org.junit.platform.engine.DiscoveryFilter;
+import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.EngineExecutionListener;
 import org.junit.platform.engine.ExecutionRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestEngine;
 import org.junit.platform.engine.UniqueId;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 
 /**
  * {@code EngineTestKit} provides support for executing a test plan for a given
@@ -42,6 +46,8 @@ import org.junit.platform.engine.UniqueId;
  * @since 1.4
  * @see #execute(String, EngineDiscoveryRequest)
  * @see #execute(TestEngine, EngineDiscoveryRequest)
+ * @see #engine(String)
+ * @see #engine(TestEngine)
  * @see EngineExecutionResults
  */
 @API(status = EXPERIMENTAL, since = "1.4")
@@ -50,8 +56,8 @@ public final class EngineTestKit {
 	private static final Logger logger = LoggerFactory.getLogger(EngineTestKit.class);
 
 	/**
-	 * Execute tests for a given {@link EngineDiscoveryRequest} using the
-	 * {@link TestEngine} with the provided ID.
+	 * Execute tests for the given {@link EngineDiscoveryRequest} using the
+	 * {@link TestEngine} with the supplied ID.
 	 *
 	 * <p>The {@code TestEngine} will be loaded via Java's {@link ServiceLoader}
 	 * mechanism, analogous to the manner in which test engines are loaded in
@@ -71,18 +77,17 @@ public final class EngineTestKit {
 	 * @throws PreconditionViolationException for invalid arguments or if the
 	 * {@code TestEngine} with the supplied ID cannot be loaded
 	 * @see #execute(TestEngine, EngineDiscoveryRequest)
+	 * @see #engine(String)
+	 * @see #engine(TestEngine)
 	 */
-	public static EngineExecutionResults execute(String engineId, EngineDiscoveryRequest discoveryRequest)
-			throws PreconditionViolationException {
-
+	public static EngineExecutionResults execute(String engineId, EngineDiscoveryRequest discoveryRequest) {
 		Preconditions.notBlank(engineId, "TestEngine ID must not be null or blank");
-
 		return execute(loadTestEngine(engineId.trim()), discoveryRequest);
 	}
 
 	/**
-	 * Execute tests for a given {@link EngineDiscoveryRequest} using the
-	 * provided {@link TestEngine}.
+	 * Execute tests for the given {@link EngineDiscoveryRequest} using the
+	 * supplied {@link TestEngine}.
 	 *
 	 * <p>Note that {@link org.junit.platform.launcher.LauncherDiscoveryRequest}
 	 * from the {@code junit-platform-launcher} module is a subtype of
@@ -97,16 +102,77 @@ public final class EngineTestKit {
 	 * @return the recorded {@code EngineExecutionResults}
 	 * @throws PreconditionViolationException for invalid arguments
 	 * @see #execute(String, EngineDiscoveryRequest)
+	 * @see #engine(String)
+	 * @see #engine(TestEngine)
 	 */
-	public static EngineExecutionResults execute(TestEngine testEngine, EngineDiscoveryRequest discoveryRequest)
-			throws PreconditionViolationException {
-
+	public static EngineExecutionResults execute(TestEngine testEngine, EngineDiscoveryRequest discoveryRequest) {
 		Preconditions.notNull(testEngine, "TestEngine must not be null");
 		Preconditions.notNull(discoveryRequest, "EngineDiscoveryRequest must not be null");
 
 		ExecutionRecorder executionRecorder = new ExecutionRecorder();
 		execute(testEngine, discoveryRequest, executionRecorder);
 		return executionRecorder.getExecutionResults();
+	}
+
+	/**
+	 * Create an execution {@link Builder} for the {@link TestEngine} with the
+	 * supplied ID.
+	 *
+	 * <p>The {@code TestEngine} will be loaded via Java's {@link ServiceLoader}
+	 * mechanism, analogous to the manner in which test engines are loaded in
+	 * the JUnit Platform Launcher API.
+	 *
+	 * <h3>Example Usage</h3>
+	 *
+	 * <pre class="code">
+	 * EngineTestKit
+	 *     .engine("junit-jupiter")
+	 *     .selectors(selectClass(MyTests.class))
+	 *     .execute()
+	 *     .tests()
+	 *     .assertStatistics(stats -> stats.started(2).finished(2));
+	 * </pre>
+	 *
+	 * @param engineId the ID of the {@code TestEngine} to use; must not be
+	 * {@code null} or <em>blank</em>
+	 * @return the engine execution {@code Builder}
+	 * @throws PreconditionViolationException if the supplied ID is {@code null}
+	 * or <em>blank</em>, or if the {@code TestEngine} with the supplied ID
+	 * cannot be loaded
+	 * @see #engine(TestEngine)
+	 * @see #execute(String, EngineDiscoveryRequest)
+	 * @see #execute(TestEngine, EngineDiscoveryRequest)
+	 */
+	public static Builder engine(String engineId) {
+		Preconditions.notBlank(engineId, "TestEngine ID must not be null or blank");
+		return engine(loadTestEngine(engineId.trim()));
+	}
+
+	/**
+	 * Create an execution {@link Builder} for the supplied {@link TestEngine}.
+	 *
+	 * <h3>Example Usage</h3>
+	 *
+	 * <pre class="code">
+	 * EngineTestKit
+	 *     .engine(new MyTestEngine())
+	 *     .selectors(selectClass(MyTests.class))
+	 *     .execute()
+	 *     .tests()
+	 *     .assertStatistics(stats -> stats.started(2).finished(2));
+	 * </pre>
+	 *
+	 * @param testEngine the {@code TestEngine} to use; must not be {@code null}
+	 * @return the engine execution {@code Builder}
+	 * @throws PreconditionViolationException if the {@code TestEngine} is
+	 * {@code null}
+	 * @see #engine(String)
+	 * @see #execute(String, EngineDiscoveryRequest)
+	 * @see #execute(TestEngine, EngineDiscoveryRequest)
+	 */
+	public static Builder engine(TestEngine testEngine) {
+		Preconditions.notNull(testEngine, "TestEngine must not be null");
+		return new Builder(testEngine);
 	}
 
 	private static void execute(TestEngine testEngine, EngineDiscoveryRequest discoveryRequest,
@@ -158,6 +224,99 @@ public final class EngineTestKit {
 
 	private EngineTestKit() {
 		/* no-op */
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * {@link TestEngine} execution builder.
+	 *
+	 * <p>See {@link EngineTestKit#engine(String)} and
+	 * {@link EngineTestKit#engine(TestEngine)} for example usage.
+	 *
+	 * @since 1.4
+	 * @see #selectors(DiscoverySelector...)
+	 * @see #filters(DiscoveryFilter...)
+	 * @see #configurationParameter(String, String)
+	 * @see #configurationParameters(Map)
+	 * @see #execute()
+	 */
+	public static final class Builder {
+
+		private final LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request();
+		private final TestEngine testEngine;
+
+		private Builder(TestEngine testEngine) {
+			this.testEngine = testEngine;
+		}
+
+		/**
+		 * Add all of the supplied {@linkplain DiscoverySelector discovery selectors}.
+		 *
+		 * @param selectors the discovery selectors to add; never {@code null}
+		 * @return this builder for method chaining
+		 * @see #execute()
+		 */
+		public Builder selectors(DiscoverySelector... selectors) {
+			this.requestBuilder.selectors(selectors);
+			return this;
+		}
+
+		/**
+		 * Add all of the supplied {@linkplain DiscoveryFilter discovery filters}.
+		 *
+		 * @param filters the discovery filters to add; never {@code null}
+		 * @return this builder for method chaining
+		 * @see #execute()
+		 */
+		public Builder filters(DiscoveryFilter<?>... filters) {
+			this.requestBuilder.filters(filters);
+			return this;
+		}
+
+		/**
+		 * Add the supplied <em>configuration parameter</em>.
+		 *
+		 * @param key the configuration parameter key under which to store the
+		 * value; never {@code null} or blank
+		 * @param value the value to store
+		 * @return this builder for method chaining
+		 * @see #execute()
+		 */
+		public Builder configurationParameter(String key, String value) {
+			this.requestBuilder.configurationParameter(key, value);
+			return this;
+		}
+
+		/**
+		 * Add all of the supplied configuration parameters.
+		 *
+		 * @param configurationParameters the map of configuration parameters to add;
+		 * never {@code null}
+		 * @return this builder for method chaining
+		 * @see #configurationParameter(String, String)
+		 * @see #execute()
+		 */
+		public Builder configurationParameters(Map<String, String> configurationParameters) {
+			this.requestBuilder.configurationParameters(configurationParameters);
+			return this;
+		}
+
+		/**
+		 * Execute tests for the configured {@link TestEngine},
+		 * {@linkplain DiscoverySelector discovery selectors},
+		 * {@linkplain DiscoveryFilter discovery filters}, and
+		 * <em>configuration parameters</em>.
+		 *
+		 * @return the recorded {@code EngineExecutionResults}
+		 * @see #execute()
+		 */
+		public EngineExecutionResults execute() {
+			ExecutionRecorder executionRecorder = new ExecutionRecorder();
+			EngineTestKit.execute(this.testEngine, this.requestBuilder.build(), executionRecorder);
+			return executionRecorder.getExecutionResults();
+		}
+
 	}
 
 }
