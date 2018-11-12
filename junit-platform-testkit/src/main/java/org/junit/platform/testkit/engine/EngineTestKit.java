@@ -130,7 +130,7 @@ public final class EngineTestKit {
 	 *     .selectors(selectClass(MyTests.class))
 	 *     .execute()
 	 *     .tests()
-	 *     .assertStatistics(stats -> stats.started(2).finished(2));
+	 *     .assertStatistics(stats -&gt; stats.started(2).finished(2));
 	 * </pre>
 	 *
 	 * @param engineId the ID of the {@code TestEngine} to use; must not be
@@ -159,7 +159,7 @@ public final class EngineTestKit {
 	 *     .selectors(selectClass(MyTests.class))
 	 *     .execute()
 	 *     .tests()
-	 *     .assertStatistics(stats -> stats.started(2).finished(2));
+	 *     .assertStatistics(stats -&gt; stats.started(2).finished(2));
 	 * </pre>
 	 *
 	 * @param testEngine the {@code TestEngine} to use; must not be {@code null}
